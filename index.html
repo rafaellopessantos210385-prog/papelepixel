@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papel & Pixel | Hub de Soluções Documentais e Digitais</title>
+
+    <!--
+    ================================================================
+    DEPENDÊNCIAS EXTERNAS
+    - Google Fonts: Orbitron (display/logo) + Inter (corpo de texto)
+    - Font Awesome 6: ícones vetoriais usados nos cards e botões
+    ================================================================
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Folha de estilos principal da aplicação -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ================================================================
+         COMPONENTE: HEADER FIXO
+         Contém: logo clicável, navegação principal, badge de status do chat.
+         Fica fixo no topo da viewport via position: sticky.
+         ================================================================ -->
+    <header>
+        <!-- Logo — clique rola para o topo da página -->
+        <div class="logo" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+            Papel <span class="logo-ampersand">&</span> Pixel<span class="logo-cursor">_</span>
+        </div>
+
+        <!-- Navegação principal -->
+        <nav id="main-nav">
+            <a href="#inicio"   class="active">Início</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#servicos">Serviços</a>
+            <a href="#suporte">P&amp;P_Chat</a>
+            <!-- Link especial: abre o painel ADM com autenticação via JS -->
+            <a href="#admin"
+               class="nav-adm"
+               onclick="toggleAdminPanel(event)">
+                <i class="fa-solid fa-lock"></i> Painel ADM
+            </a>
+            <!-- Link especial: exibe formulário de contato no rodapé -->
+            <a href="#contato" onclick="toggleFooterContact(event)">Contato</a>
+        </nav>
+
+        <!-- Badge de status do chatbot (estado atualizado via JS quando chat encerra) -->
+        <div class="status-badge">
+            <i class="fa-solid fa-robot"></i> P&amp;P_CHAT ONLINE
+        </div>
+    </header>
+
+
+    <!-- ================================================================
+         SEÇÃO: HERO (Apresentação principal)
+         Propósito de conversão: apresentar a proposta de valor da empresa.
+         Background com gradiente radial definido no CSS (.hero).
+         ================================================================ -->
+    <section id="inicio" class="hero">
+        <h1>A fusão definitiva entre <span>Papel &amp; Pixel</span></h1>
+        <p>
+            Garantimos a transição ideal entre o ecossistema documental físico e a
+            agilidade ilimitada da nuvem. Otimização de projetos corporativos, acadêmicos
+            e jurídicos operados sob o modelo de Dark Office técnico.
+        </p>
+    </section>
+
+
+    <!-- ================================================================
+         SEÇÃO: SOBRE (Cards institucionais)
+         Apresenta os 3 pilares estratégicos da empresa.
+         Grid responsivo com cards animados ao hover.
+         ================================================================ -->
+    <section id="sobre" class="about-section">
+        <div class="section-title">Sobre o Nosso <span>Core</span></div>
+        <div class="section-subtitle">
+            A evolução estratégica das antigas lanhouses para um ecossistema
+            inteligente baseado em automação na nuvem.
+        </div>
+
+        <div class="about-grid">
+            <!-- Card 1: Modelo operacional -->
+            <div class="about-card">
+                <i class="fa-solid fa-bolt"></i>
+                <h3>Dark Office Eficiente</h3>
+                <p>Estrutura totalmente descentralizada e otimizada na nuvem para
+                   entregar processamento ágil sem custos fixos desnecessários.</p>
+            </div>
+            <!-- Card 2: Qualidade e normas -->
+            <div class="about-card">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h3>Conformidade Estrita</h3>
+                <p>Garantia de formatação e padronização rigorosa sob diretrizes de
+                   órgãos reguladores e normas da ABNT vigentes.</p>
+            </div>
+            <!-- Card 3: Logística híbrida -->
+            <div class="about-card">
+                <i class="fa-solid fa-network-wired"></i>
+                <h3>Infraestrutura Híbrida</h3>
+                <p>Gerenciamento completo das suas demandas digitais combinado com
+                   logística de entrega física expressa para impressões.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ================================================================
+         COMPONENTE: PAINEL ADMINISTRATIVO (Terminal protegido)
+         Oculto por padrão (display: none via CSS).
+         Exibido apenas após autenticação bem-sucedida via toggleAdminPanel().
+         Permite ao proprietário editar a tabela de preços em tempo real.
+         ================================================================ -->
+    <section id="admin">
+        <div class="panel admin-panel" id="sys-admin-panel">
+            <div class="panel-title">
+                <span><i class="fa-solid fa-user-gear"></i> TERMINAL EXCLUSIVO DO PROPRIETÁRIO</span>
+                <span class="admin-session-label">Sessão Autenticada</span>
+            </div>
+
+            <!-- Grid de inputs para cada variável de preço editável -->
+            <div class="admin-grid">
+                <div class="form-group">
+                    <label for="adm-val-abnt">Base ABNT (R$)</label>
+                    <input type="number" id="adm-val-abnt" value="120.00" step="0.50">
+                </div>
+                <div class="form-group">
+                    <label for="adm-val-adm">Base Contratos (R$)</label>
+                    <input type="number" id="adm-val-adm" value="55.00" step="0.50">
+                </div>
+                <div class="form-group">
+                    <label for="adm-val-inovacao">Base QR Code / Inovação (R$)</label>
+                    <input type="number" id="adm-val-inovacao" value="85.00" step="0.50">
+                </div>
+                <div class="form-group">
+                    <label for="adm-val-pb">Impressão P&amp;B por Pág. (R$)</label>
+                    <input type="number" id="adm-val-pb" value="0.50" step="0.05">
+                </div>
+                <div class="form-group">
+                    <label for="adm-val-color">Impressão Colorida por Pág. (R$)</label>
+                    <input type="number" id="adm-val-color" value="1.50" step="0.05">
+                </div>
+                <div class="form-group">
+                    <label for="adm-val-delivery">Taxa Motoboy (R$)</label>
+                    <input type="number" id="adm-val-delivery" value="15.00" step="0.50">
+                </div>
+            </div>
+
+            <!-- Salva os novos valores e fecha o painel automaticamente -->
+            <button class="admin-btn-save" onclick="salvarNovosValoresAdmin()">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Tabela &amp; Fechar Painel
+            </button>
+        </div>
+    </section>
+
+
+    <!-- ================================================================
+         SEÇÃO: SERVIÇOS (Layout principal com dois painéis lado a lado)
+         Painel esquerdo: formulário de orçamento
+         Painel direito:  chatbot P&P_Chat
+         Em telas menores, empilham verticalmente (ver media query no CSS).
+         ================================================================ -->
+    <section id="servicos">
+        <div class="main-layout">
+
+            <!-- --------------------------------------------------------
+                 PAINEL ESQUERDO: Formulário de Orçamento & Ordem de Serviço
+                 Eventos: onclick nos cards → selectServiceCard()
+                          oninput/onchange nos campos → atualizarPrecoLiveSystem()
+                          onsubmit do form → executarOrdemSalvarTxt()
+                 -------------------------------------------------------- -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span><i class="fa-solid fa-sliders"></i> Parâmetros da Requisição &amp; Orçamento</span>
+                </div>
+
+                <form id="order-form-system" onsubmit="executarOrdemSalvarTxt(event)">
+
+                    <!-- Dados de identificação do cliente -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="c-name">Nome Completo</label>
+                            <input type="text" id="c-name" required placeholder="Ex: Gabriel Silva">
+                        </div>
+                        <div class="form-group">
+                            <label for="c-email">E-mail Corporativo</label>
+                            <input type="email" id="c-email" required placeholder="Ex: gabriel@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="c-whatsapp">WhatsApp (com DDD)</label>
+                            <input type="text" id="c-whatsapp" required placeholder="Ex: (86) 99888-7766">
+                        </div>
+                    </div>
+
+                    <!-- Cards de seleção de serviço
+                         onclick chama selectServiceCard() que:
+                         1. Remove .selected de todos os cards
+                         2. Aplica .selected no card clicado
+                         3. Marca o radio correspondente
+                         4. Recalcula o preço -->
+                    <label style="margin-bottom: 12px;">Selecione o Serviço Desejado</label>
+                    <div class="services-grid">
+
+                        <div class="service-card selected" onclick="selectServiceCard('lanhouse_base', event)">
+                            <input type="radio" name="srv-radio-group" value="lanhouse_base" checked>
+                            <i class="fa-solid fa-print"></i>
+                            <h3>Lanhouse Base</h3>
+                            <p>Impressão pura, digitalizações rápidas e digitação expressa.</p>
+                        </div>
+
+                        <div class="service-card" onclick="selectServiceCard('adm_juridico', event)">
+                            <input type="radio" name="srv-radio-group" value="adm_juridico">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                            <h3>Adm &amp; Jurídico</h3>
+                            <p>Elaboração de contratos corporativos, procurações e currículos ATS.</p>
+                        </div>
+
+                        <div class="service-card" onclick="selectServiceCard('academico_abnt', event)">
+                            <input type="radio" name="srv-radio-group" value="academico_abnt">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                            <h3>Acadêmico ABNT</h3>
+                            <p>Formatação completa de TCCs e monografias científicas.</p>
+                        </div>
+
+                        <div class="service-card" onclick="selectServiceCard('inovacao_radical', event)">
+                            <input type="radio" name="srv-radio-group" value="inovacao_radical">
+                            <i class="fa-solid fa-fingerprint"></i>
+                            <h3>Inovação Radical</h3>
+                            <p>Desenvolvimento de QR Codes e sistemas em Blockchain.</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Bloco de impressão adicional
+                         Ambos os inputs disparam atualizarPrecoLiveSystem() -->
+                    <div class="print-addons-container">
+                        <p class="print-addons-title">
+                            <i class="fa-solid fa-circle-plus"></i>
+                            Adicionar Impressão Física ao Serviço?
+                        </p>
+                        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                            <div class="form-group">
+                                <label for="addon-print-type">Tipo de Impressão</label>
+                                <select id="addon-print-type" onchange="atualizarPrecoLiveSystem()">
+                                    <option value="nenhum">Apenas arquivo digital — Sem adicional</option>
+                                    <option value="pb">Cópias Preto &amp; Branco (P&amp;B)</option>
+                                    <option value="color">Cópias Coloridas High-Res</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="addon-pages-qty">Quantidade de Páginas</label>
+                                <input type="number" id="addon-pages-qty" value="0" min="0"
+                                       oninput="atualizarPrecoLiveSystem()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seleção de modalidade de entrega -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="delivery-method">Modalidade de Logística</label>
+                        <select id="delivery-method" onchange="atualizarPrecoLiveSystem()">
+                            <option value="nuvem">Transferência via Nuvem (E-mail / WhatsApp) — Grátis</option>
+                            <option value="delivery">Despacho Físico Express via Motoboy Parceiro</option>
+                        </select>
+                    </div>
+
+                    <!-- Alerta de orçamento complexo — visível apenas quando páginas > 150
+                         Lógica de exibição controlada por atualizarPrecoLiveSystem() -->
+                    <div class="comercial-shortcut-box" id="comercial-shortcut" style="display: none;">
+                        <div>
+                            <strong style="color: var(--neon-red);">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                Orçamento Complexo Detectado!
+                            </strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">
+                                Volume alto? Trate diretamente com nosso comercial.
+                            </span>
+                        </div>
+                        <a href="https://wa.me/5586988303158?text=Olá,%20gostaria%20de%20um%20orçamento%20personalizado."
+                           target="_blank"
+                           class="comercial-link">
+                            <i class="fa-brands fa-whatsapp"></i> WhatsApp Comercial
+                        </a>
+                    </div>
+
+                    <!-- Display de preço em tempo real
+                         Atualizado via document.getElementById('system-live-total').innerText -->
+                    <div class="pricing-box">
+                        <div>
+                            <strong>Orçamento Consolidado</strong><br>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">
+                                Tabela ADM ativa
+                            </span>
+                        </div>
+                        <div class="price-tag" id="system-live-total">R$ 0,00</div>
+                    </div>
+
+                    <!-- Botão de submissão — dispara executarOrdemSalvarTxt() -->
+                    <button type="submit" class="btn-submit">
+                        <i class="fa-solid fa-file-export"></i>
+                        Consolidar Ordem de Serviço
+                    </button>
+
+                </form>
+            </div><!-- /painel esquerdo -->
+
+
+            <!-- --------------------------------------------------------
+                 PAINEL DIREITO: Chatbot P&P_Chat
+                 Chat de atendimento automatizado.
+                 Enter no input também envia (vinculado via addEventListener no app.js).
+                 -------------------------------------------------------- -->
+            <div class="panel chatbot-panel" id="suporte">
+                <div class="panel-title">
+                    <span><i class="fa-solid fa-robot"></i> Assistente Cognitivo: P&amp;P_Chat</span>
+                    <!-- Indicador de status — alterado para "○ CONCLUÍDO" quando chat encerra -->
+                    <span id="chat-status-indicator">● OPERACIONAL</span>
+                </div>
+
+                <!-- Área de mensagens — scroll automático controlado por inserirMensagemUI() -->
+                <div class="chat-box" id="chat-messages-container">
+                    <!-- Mensagem de boas-vindas inicial do bot -->
+                    <div class="chat-msg bot">
+                        Olá! Eu sou o <strong>P&amp;P_Chat</strong>. Posso lhe dar suporte sobre
+                        formatação e soluções digitais.<br><br>
+                        Se precisar de <strong>impressões adicionais</strong>, fale o tipo
+                        (Preto e Branco ou Colorida) e a quantidade de páginas.
+                        Caso não saiba a quantidade, me avise para eu lhe transferir ao Comercial!
+                    </div>
+                </div>
+
+                <!-- Input de mensagem + botão enviar -->
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chat-input-text"
+                           placeholder="Digite sua mensagem para o P&P_Chat...">
+                    <button class="btn-send" onclick="dispararMensagemChat()">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div><!-- /painel direito -->
+
+        </div><!-- /main-layout -->
+    </section><!-- /servicos -->
+
+
+    <!-- ================================================================
+         RODAPÉ
+         Contém: links de navegação, formulário de contato oculto, copyright.
+         ================================================================ -->
+    <footer>
+        <!-- Links espelhados da navegação principal -->
+        <div class="footer-links">
+            <a href="#inicio">Início</a>
+            <a href="#sobre">Sobre</a>
+            <a href="#servicos">Serviços</a>
+            <a href="#suporte">P&amp;P_Chat</a>
+            <!-- Link de contato: exibe o formulário abaixo via toggleFooterContact() -->
+            <a href="#contato" onclick="toggleFooterContact(event)">Contato</a>
+        </div>
+
+        <!-- Formulário de contato direto à administração
+             Oculto por padrão — exibido via toggleFooterContact() -->
+        <div class="footer-contact-form" id="footer-contact-box">
+            <h4>Mensagem Direta à Administração</h4>
+            <form onsubmit="gravarContatoAdminTxt(event)">
+                <div class="form-group">
+                    <label for="fc-admin-name">Seu Nome</label>
+                    <input type="text" id="fc-admin-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="fc-admin-msg">Mensagem</label>
+                    <textarea id="fc-admin-msg" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fa-solid fa-satellite-dish"></i> Transmitir Protocolo
+                </button>
+            </form>
+        </div>
+
+        <!-- Rodapé legal -->
+        <div class="copyright-box">
+            &copy; 2026 Papel &amp; Pixel — Todos os direitos reservados.<br>
+            Criação: Rafael Lopes, Wildson Ribeiro e Beatriz Silva.
+        </div>
+    </footer>
+
+
+    <!-- Script principal carregado no fim do body para garantir que o DOM já existe -->
+    <script src="app.js"></script>
+
+</body>
+</html>
