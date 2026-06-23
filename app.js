@@ -1,13 +1,10 @@
 /* ============================================================
-   app.js — Papel & Pixel | Lógica da Aplicação
+   app.js — Papel & Pixel | Lógica da Aplicação Corrigida e Otimizada
    Organização: estado global → UI helpers → módulos funcionais
    ============================================================ */
 
-
 /* ============================================================
    MÓDULO 1 — ESTADO GLOBAL DA APLICAÇÃO
-   Objeto centralizado com os preços editáveis pelo administrador.
-   É atualizado via painel ADM e consultado pelo motor de cálculo.
    ============================================================ */
 const tabelaPrecos = {
     abnt:         120.00,  // Formatação Acadêmica ABNT
@@ -19,21 +16,16 @@ const tabelaPrecos = {
 };
 
 /* Flags de estado de sessão */
-let interacoesCurtasContador = 0; // Conta respostas curtas consecutivas no chat
-let atendimentoEncerrado    = false; // Bloqueia novas mensagens após encerramento
-let admAutenticado          = false; // Controla se o administrador já fez login nesta sessão
-
+let interacoesCurtasContador = 0;
+let atendimentoEncerrado    = false;
+let admAutenticado          = false;
 
 /* ============================================================
    MÓDULO 2 — INICIALIZAÇÃO
-   Executa ao carregar a página: define preço inicial e vincula
-   o Enter do chat ao botão de envio.
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Calcula o preço do serviço selecionado por padrão
     atualizarPrecoLiveSystem();
 
-    // Permite enviar mensagem no chat com a tecla Enter
     const chatInput = document.getElementById('chat-input-text');
     if (chatInput) {
         chatInput.addEventListener('keydown', (e) => {
@@ -42,19 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
 /* ============================================================
    MÓDULO 3 — NAVEGAÇÃO & ROLAGEM
-   Controla links especiais da nav que abrem painéis ou rolam a página.
    ============================================================ */
-
-/**
- * toggleFooterContact()
- * Exibe o formulário de contato no rodapé e rola suavemente até ele.
- * Disparado pelo link "Contato" na nav e no footer.
- *
- * @param {Event} event - Evento de clique (prevenido para não mudar URL)
- */
 function toggleFooterContact(event) {
     event.preventDefault();
     const contactBox = document.getElementById('footer-contact-box');
@@ -62,33 +44,18 @@ function toggleFooterContact(event) {
     contactBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-
 /* ============================================================
    MÓDULO 4 — PAINEL ADMINISTRATIVO
-   Gerencia autenticação e edição da tabela de preços pelo proprietário.
    ============================================================ */
-
-/**
- * toggleAdminPanel()
- * Intercepta o clique no link "Painel ADM" da nav.
- * Se não autenticado, solicita login e senha via prompt nativo.
- * Após autenticação bem-sucedida, exibe o terminal de gerência.
- *
- * Credenciais padrão: login = "admpp01" | senha = "admpp01"
- *
- * @param {Event} event - Evento de clique (prevenido para não navegar)
- */
 function toggleAdminPanel(event) {
     event.preventDefault();
     const adminBox = document.getElementById('sys-admin-panel');
 
-    // Se o painel já está visível, fecha ao clicar novamente
     if (adminBox.style.display === 'block') {
         adminBox.style.display = 'none';
         return;
     }
 
-    // Exige autenticação caso ainda não tenha sido feita nesta sessão
     if (!admAutenticado) {
         const promptLogin = prompt('ÁREA RESTRITA — Digite o Login Administrativo:');
         const promptSenha = prompt('ÁREA RESTRITA — Digite a Senha Administrativa:');
@@ -106,12 +73,6 @@ function toggleAdminPanel(event) {
     adminBox.scrollIntoView({ behavior: 'smooth' });
 }
 
-/**
- * salvarNovosValoresAdmin()
- * Lê os valores dos inputs do painel ADM, aplica ao objeto tabelaPrecos
- * e força o recálculo do orçamento visível ao cliente.
- * Fecha o painel automaticamente após salvar (segurança física).
- */
 function salvarNovosValoresAdmin() {
     tabelaPrecos.abnt         = parseFloat(document.getElementById('adm-val-abnt').value)     || 0;
     tabelaPrecos.adm          = parseFloat(document.getElementById('adm-val-adm').value)      || 0;
@@ -122,27 +83,12 @@ function salvarNovosValoresAdmin() {
 
     alert('Tabela de novos valores gravada com sucesso! Fechando painel operacional...');
     document.getElementById('sys-admin-panel').style.display = 'none';
-
-    // Atualiza imediatamente o preço exibido ao cliente com os novos valores
     atualizarPrecoLiveSystem();
 }
 
-
 /* ============================================================
    MÓDULO 5 — MOTOR DE ORÇAMENTO
-   Calcula o preço total em tempo real conforme as seleções do formulário.
-   Equação: Ptotal = Ψservico + Σ(Qpag × Ktipo) + Λlogistica
    ============================================================ */
-
-/**
- * selectServiceCard()
- * Gerencia a seleção visual dos cards de serviço.
- * Remove a classe "selected" de todos e aplica no card clicado.
- * Marca o radio button correspondente e aciona o recálculo.
- *
- * @param {string} serviceType - Valor do serviço (ex: "academico_abnt")
- * @param {Event}  event       - Evento do clique para acessar o currentTarget
- */
 function selectServiceCard(serviceType, event) {
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('selected');
@@ -155,49 +101,38 @@ function selectServiceCard(serviceType, event) {
     atualizarPrecoLiveSystem();
 }
 
-/**
- * atualizarPrecoLiveSystem()
- * Motor reativo de precificação — disparado a cada interação no formulário.
- */
 function atualizarPrecoLiveSystem() {
     const radioSelecionado = document.querySelector('input[name="srv-radio-group"]:checked');
     if (!radioSelecionado) return;
 
     let total = 0;
-
-    // Passo 1 — Taxa base do serviço (Ψservico)
     const servicoValor = radioSelecionado.value;
     if      (servicoValor === 'lanhouse_base')   total = 10.00;
     else if (servicoValor === 'adm_juridico')    total = tabelaPrecos.adm;
     else if (servicoValor === 'academico_abnt')  total = tabelaPrecos.abnt;
     else if (servicoValor === 'inovacao_radical') total = tabelaPrecos.inovacao;
 
-    // Passo 2 — Adicional de impressões: Qpag × Ktipo
     const tipoImpressao = document.getElementById('addon-print-type').value;
     const qtdPaginas    = parseInt(document.getElementById('addon-pages-qty').value) || 0;
 
     if      (tipoImpressao === 'pb')    total += qtdPaginas * tabelaPrecos.pbPerPage;
     else if (tipoImpressao === 'color') total += qtdPaginas * tabelaPrecos.colorPerPage;
 
-    // Passo 3 — Taxa de entrega física (Λlogistica)
     const modalidadeLogistica = document.getElementById('delivery-method').value;
     if (modalidadeLogistica === 'delivery') total += tabelaPrecos.delivery;
 
-    // Passo 4 — Alerta de volume alto (>150 páginas → redireciona ao comercial)
     const alertaComercial = document.getElementById('comercial-shortcut');
-    alertaComercial.style.display = qtdPaginas > 150 ? 'flex' : 'none';
+    if (alertaComercial) {
+        alertaComercial.style.display = qtdPaginas > 150 ? 'flex' : 'none';
+    }
 
-    // Passo 5 — Exibe o total formatado no padrão monetário brasileiro
     document.getElementById('system-live-total').innerText =
         `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-
 /* ============================================================
    MÓDULO 6 — CHATBOT (P&P_Chat)
-   Atendimento automatizado de primeiro nível via análise de texto.
    ============================================================ */
-
 function dispararMensagemChat() {
     if (atendimentoEncerrado) {
         alert('Atendimento concluído. Para nova consulta, recarregue a página.');
@@ -286,39 +221,120 @@ function inserirMensagemUI(role, texto) {
     container.scrollTop = container.scrollHeight;
 }
 
-
 /* ============================================================
-   MÓDULO 7 — FORMULÁRIOS DE ENVIO & REINICIALIZAÇÃO (CORRIGIDO)
+   MÓDULO 7 — FORMULÁRIOS DE ENVIO, DOWNLOAD TXT & RESET COMPLETO
    ============================================================ */
 
 /**
+ * Função utilitária para gerar e baixar arquivos TXT dinamicamente no cliente
+ */
+function downloadTxtFile(filename, textContent) {
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textContent));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+
+/**
  * executarOrdemSalvarTxt()
- * Captura o envio do formulário, incluindo o metadado do arquivo selecionado.
+ * Processa o orçamento, gera o arquivo manifesto TXT e limpa a tela de imediato.
  */
 function executarOrdemSalvarTxt(event) {
     event.preventDefault();
+    
     const nome    = document.getElementById('c-name').value;
     const email   = document.getElementById('c-email').value;
+    const whatsapp = document.getElementById('c-whatsapp').value;
     const total   = document.getElementById('system-live-total').innerText;
     
-    // Captura corrigida e validada do arquivo anexado
     const fileInput = document.getElementById('c-file');
     const nomeArquivo = fileInput && fileInput.files.length > 0 ? fileInput.files[0].name : 'Nenhum arquivo detectado';
     
-    alert(`Ordem de ${nome} (${email}) registrada com sucesso!\nArquivo Enviado: ${nomeArquivo}\nValor: ${total}`);
+    const radioSelecionado = document.querySelector('input[name="srv-radio-group"]:checked');
+    const servicoNome = radioSelecionado ? radioSelecionado.parentNode.querySelector('h3').innerText : 'Não selecionado';
     
-    if (confirm("Orçamento concluído com sucesso! Deseja limpar a página para iniciar um novo trabalho?")) {
-        reiniciarSistema();
-    }
+    const tipoImpressao = document.getElementById('addon-print-type').value;
+    const qtdPaginas    = document.getElementById('addon-pages-qty').value;
+    const modalidadeLogistica = document.getElementById('delivery-method').value;
+
+    // Montando a estrutura do documento TXT de Orçamento
+    const txtContent = `==================================================
+PAPEL & PIXEL - COMPROVANTE DE SOLICITAÇÃO DE ORÇAMENTO
+==================================================
+Data/Hora da Emissão: ${new Date().toLocaleString('pt-BR')}
+--------------------------------------------------
+DADOS DO CLIENTE:
+Nome Completo: ${nome}
+E-mail Corporativo: ${email}
+WhatsApp: ${whatsapp}
+--------------------------------------------------
+DETALHES DO TRABALHO:
+Serviço Principal: ${servicoNome}
+Arquivo Enviado: ${nomeArquivo}
+Adicional de Impressões: ${qtdPaginas} páginas (${tipoImpressao.toUpperCase()})
+Logística Escolhida: ${modalidadeLogistica === 'delivery' ? 'Motoboy Parceiro' : 'Nuvem (Digital)'}
+--------------------------------------------------
+VALOR TOTAL CONSOLIDADO: ${total}
+--------------------------------------------------
+© 2026 Papel & Pixel - Dark Office Técnico.
+==================================================`;
+
+    // Baixa o documento TXT automaticamente
+    downloadTxtFile(`orcamento_${nome.toLowerCase().replace(/\s+/g, '_')}.txt`, txtContent);
+    
+    alert(`Orçamento de ${nome} processado com sucesso! O arquivo TXT de comprovação foi gerado.\nA tela será zerada automaticamente.`);
+    
+    // Limpeza mandatória da área de trabalho
+    reiniciarSistema();
+}
+
+/**
+ * gravarContatoAdminTxt()
+ * Processa a mensagem direta, gera o TXT de protocolo administrativo e fecha/limpa a área.
+ */
+function gravarContatoAdminTxt(event) {
+    event.preventDefault();
+    
+    const nome = document.getElementById('fc-admin-name').value;
+    const msg  = document.getElementById('fc-admin-msg').value;
+    
+    // Montando a estrutura do documento TXT de Mensagem Direta
+    const txtContent = `==================================================
+PAPEL & PIXEL - PROTOCOLO DE TRANSMISSÃO ADMINISTRATIVA
+==================================================
+Data/Hora de Envio: ${new Date().toLocaleString('pt-BR')}
+--------------------------------------------------
+DADOS DO EMISSOR:
+Nome Identificado: ${nome}
+--------------------------------------------------
+CONTEÚDO DA MENSAGEM TRANSMITIDA:
+"${msg}"
+--------------------------------------------------
+Status do Protocolo: Enviado com sucesso ao terminal ADM.
+--------------------------------------------------
+© 2026 Papel & Pixel - Dark Office Técnico.
+==================================================`;
+
+    // Baixa o documento TXT administrativo automaticamente
+    downloadTxtFile(`contato_adm_${nome.toLowerCase().replace(/\s+/g, '_')}.txt`, txtContent);
+    
+    alert(`Mensagem enviada com sucesso! O arquivo TXT de protocolo foi gerado e baixado.`);
+    
+    // Reseta o formulário de contato do rodapé e o esconde
+    const formContato = event.target;
+    formContato.reset();
+    document.getElementById('footer-contact-box').style.display = 'none';
 }
 
 /**
  * reiniciarSistema()
- * Reseta o formulário principal, redefine as seleções visuais padrão,
- * limpa as flags do chatbot e restaura o estado limpo inicial da página.
+ * Reseta completamente a aplicação, limpando formulários, seletores dinâmicos e o chatbot.
  */
 function reiniciarSistema() {
-    // 1. Reseta os campos nativos do formulário
+    // 1. Reseta os campos nativos do formulário principal
     const formOrdem = document.getElementById('order-form-system');
     if (formOrdem) formOrdem.reset();
 
@@ -354,13 +370,7 @@ function reiniciarSistema() {
         `;
     }
 
-    // 4. Força o recálculo do motor para resetar o display de preço
+    // 4. Força o recálculo do motor para resetar o display de preço ao valor inicial base
     atualizarPrecoLiveSystem();
-    console.log("Sistema reiniciado e pronto para um novo ciclo de trabalho.");
-}
-
-function gravarContatoAdminTxt(event) {
-    event.preventDefault();
-    const nome = document.getElementById('fc-admin-name').value;
-    alert(`Mensagem de "${nome}" transmitida com sucesso à administração!`);
+    console.log("Área limpa e redefinida com sucesso.");
 }
