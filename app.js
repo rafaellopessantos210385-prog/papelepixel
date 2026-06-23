@@ -158,13 +158,6 @@ function selectServiceCard(serviceType, event) {
 /**
  * atualizarPrecoLiveSystem()
  * Motor reativo de precificação — disparado a cada interação no formulário.
- *
- * Fluxo:
- *  1. Lê o serviço selecionado e aplica a taxa base (Ψservico)
- *  2. Soma o custo de impressões adicionais: Qpag × Ktipo
- *  3. Soma a taxa de entrega física se selecionada (Λlogistica)
- *  4. Exibe alerta de orçamento complexo se páginas > 150
- *  5. Atualiza o display de preço na tela
  */
 function atualizarPrecoLiveSystem() {
     const radioSelecionado = document.querySelector('input[name="srv-radio-group"]:checked');
@@ -203,22 +196,8 @@ function atualizarPrecoLiveSystem() {
 /* ============================================================
    MÓDULO 6 — CHATBOT (P&P_Chat)
    Atendimento automatizado de primeiro nível via análise de texto.
-   Usa expressões regulares e palavras-chave para triagem de demandas.
    ============================================================ */
 
-/**
- * dispararMensagemChat()
- * Lê o texto digitado pelo usuário, exibe a bolha de mensagem e
- * processa a resposta automática do bot com delay de 400ms.
- *
- * Fluxo de análise:
- *  - Mensagens muito curtas ou de encerramento → pergunta de confirmação
- *  - Termos de impressão (impress / copia / imprimir) → tenta extrair tipo e quantidade
- *      - Com tipo + quantidade → atualiza o formulário e confirma
- *      - Sem dados suficientes → redireciona ao WhatsApp Comercial
- *  - Termo "abnt" → informa o preço vigente da tabela
- *  - Outros → resposta padrão de escopo limitado
- */
 function dispararMensagemChat() {
     if (atendimentoEncerrado) {
         alert('Atendimento concluído. Para nova consulta, recarregue a página.');
@@ -234,13 +213,10 @@ function dispararMensagemChat() {
     inserirMensagemUI('user', textoOriginal);
     inputField.value = '';
 
-    // Conta interações curtas consecutivas para detectar indecisão
-    const ehCurta = textoOriginal.length <= 3
-        || ['oi', 'sim', 'nao', 'não'].includes(textoLower);
+    const ehCurta = textoOriginal.length <= 3 || ['oi', 'sim', 'nao', 'não'].includes(textoLower);
     interacoesCurtasContador = ehCurta ? interacoesCurtasContador + 1 : 0;
 
     setTimeout(() => {
-        // --- Verificação de encerramento de conversa ---
         const querEncerrar = textoLower.includes('tchau') || textoLower.includes('obrigado');
         if (interacoesCurtasContador >= 2 || querEncerrar) {
             inserirMensagemUI('bot', '<strong>[P&P_Chat]:</strong> Teria mais alguma dúvida?');
@@ -253,17 +229,13 @@ function dispararMensagemChat() {
             return;
         }
 
-        // --- Detecção de demanda de impressão ---
-        const pedidoImpressao = textoLower.includes('impress')
-            || textoLower.includes('copia')
-            || textoLower.includes('imprimir');
+        const pedidoImpressao = textoLower.includes('impress') || textoLower.includes('copia') || textoLower.includes('imprimir');
 
         if (pedidoImpressao) {
             const temTipo      = textoLower.includes('preto') || textoLower.includes('branco') || textoLower.includes('color');
             const temQuantidade = /\d+/.test(textoLower);
 
             if (temTipo && temQuantidade) {
-                // Extrai a quantidade mencionada e atualiza o formulário
                 const qtdDetectada = textoLower.match(/\d+/)[0];
                 const tipoDetectado = textoLower.includes('color') ? 'color' : 'pb';
                 const labelTipo = tipoDetectado === 'color' ? 'Colorida' : 'P&B';
@@ -273,10 +245,9 @@ function dispararMensagemChat() {
                 atualizarPrecoLiveSystem();
 
                 inserirMensagemUI('bot',
-                    `<strong>[P&P_Chat]:</strong> Pedido registrado! <strong>${qtdDetectada} pág. ${labelTipo}</strong>. Orçamento atualizado ao lado.`
+                    `<strong>[P&P_Chat]:</strong> Pedido registrado! <strong>${qtdDetectada} pág. ${labelTipo}</strong>. Orçamento updated.`
                 );
             } else {
-                // Dados insuficientes → redireciona ao WhatsApp Comercial
                 inserirMensagemUI('bot', `
                     <strong>[P&P_Chat]:</strong> Para orçar suas impressões, preciso do tipo (P&B ou Colorida) e da quantidade de páginas.
                     Como não identifiquei esses dados, vou te transferir ao nosso Comercial:<br><br>
@@ -292,7 +263,6 @@ function dispararMensagemChat() {
             return;
         }
 
-        // --- Resposta para termo "abnt" ---
         if (textoLower.includes('abnt')) {
             inserirMensagemUI('bot',
                 `<strong>[P&P_Chat]:</strong> Formatação Acadêmica ABNT: <strong>R$ ${tabelaPrecos.abnt.toFixed(2).replace('.', ',')}</strong>.`
@@ -300,22 +270,13 @@ function dispararMensagemChat() {
             return;
         }
 
-        // --- Resposta padrão (escopo fora do conhecimento do bot) ---
         inserirMensagemUI('bot',
             '<strong>[P&P_Chat]:</strong> Sou especializado em ABNT, Contratos e Impressões. Para outras dúvidas, acesse nosso Comercial.'
         );
 
-    }, 400); // Delay simula tempo de processamento
+    }, 400);
 }
 
-/**
- * inserirMensagemUI()
- * Cria e injeta um elemento de mensagem na área do chat.
- * Rola automaticamente para a mensagem mais recente.
- *
- * @param {'user'|'bot'} role  - Define o alinhamento e estilo da bolha
- * @param {string}       texto - Conteúdo HTML da mensagem
- */
 function inserirMensagemUI(role, texto) {
     const container  = document.getElementById('chat-messages-container');
     const msgEl      = document.createElement('div');
@@ -327,33 +288,77 @@ function inserirMensagemUI(role, texto) {
 
 
 /* ============================================================
-   MÓDULO 7 — FORMULÁRIOS DE ENVIO
-   Processamento das submissões (ordem de serviço e contato).
+   MÓDULO 7 — FORMULÁRIOS DE ENVIO & REINICIALIZAÇÃO (CORRIGIDO)
    ============================================================ */
 
 /**
  * executarOrdemSalvarTxt()
- * Captura o envio do formulário de orçamento/ordem de serviço.
- * Ponto de extensão: aqui será implementada a exportação em TXT
- * ou envio para WhatsApp/email.
- *
- * @param {Event} event - Evento de submit (prevenido para controle manual)
+ * Captura o envio do formulário, incluindo o metadado do arquivo selecionado.
  */
 function executarOrdemSalvarTxt(event) {
     event.preventDefault();
     const nome    = document.getElementById('c-name').value;
     const email   = document.getElementById('c-email').value;
     const total   = document.getElementById('system-live-total').innerText;
-    alert(`Ordem de ${nome} (${email}) registrada com sucesso!\nValor: ${total}`);
+    
+    // Captura corrigida e validada do arquivo anexado
+    const fileInput = document.getElementById('c-file');
+    const nomeArquivo = fileInput && fileInput.files.length > 0 ? fileInput.files[0].name : 'Nenhum arquivo detectado';
+    
+    alert(`Ordem de ${nome} (${email}) registrada com sucesso!\nArquivo Enviado: ${nomeArquivo}\nValor: ${total}`);
+    
+    if (confirm("Orçamento concluído com sucesso! Deseja limpar a página para iniciar um novo trabalho?")) {
+        reiniciarSistema();
+    }
 }
 
 /**
- * gravarContatoAdminTxt()
- * Captura o envio do formulário de contato direto à administração.
- * Ponto de extensão: integrar com EmailJS ou API de backend.
- *
- * @param {Event} event - Evento de submit (prevenido)
+ * reiniciarSistema()
+ * Reseta o formulário principal, redefine as seleções visuais padrão,
+ * limpa as flags do chatbot e restaura o estado limpo inicial da página.
  */
+function reiniciarSistema() {
+    // 1. Reseta os campos nativos do formulário
+    const formOrdem = document.getElementById('order-form-system');
+    if (formOrdem) formOrdem.reset();
+
+    // 2. Reseta a seleção visual dos cartões de serviço (Volta para Lanhouse Base)
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    const cardPadrao = document.querySelector(".service-card[onclick*='lanhouse_base']");
+    if (cardPadrao) {
+        cardPadrao.classList.add('selected');
+        const radioInterno = cardPadrao.querySelector('input[type="radio"]');
+        if (radioInterno) radioInterno.checked = true;
+    }
+
+    // 3. Reseta o estado e histórico do Chatbot
+    interacoesCurtasContador = 0;
+    atendimentoEncerrado    = false;
+    
+    const indicadorStatus = document.getElementById('chat-status-indicator');
+    if (indicadorStatus) indicadorStatus.innerText = '● OPERACIONAL';
+
+    const containerMensagens = document.getElementById('chat-messages-container');
+    if (containerMensagens) {
+        containerMensagens.innerHTML = `
+            <div class="chat-msg bot">
+                Olá! Eu sou o <strong>P&amp;P_Chat</strong>. Posso lhe dar suporte sobre
+                formatação e soluções digitais.<br><br>
+                Se precisar de <strong>impressões adicionais</strong>, fale o tipo
+                (Preto e Branco ou Colorida) e a quantidade de páginas.
+                Caso não saiba a quantidade, me avise para eu lhe transferir ao Comercial!
+            </div>
+        `;
+    }
+
+    // 4. Força o recálculo do motor para resetar o display de preço
+    atualizarPrecoLiveSystem();
+    console.log("Sistema reiniciado e pronto para um novo ciclo de trabalho.");
+}
+
 function gravarContatoAdminTxt(event) {
     event.preventDefault();
     const nome = document.getElementById('fc-admin-name').value;
